@@ -103,3 +103,7 @@ spec:
 ### Service do tipo LoadBalancer cria um ip público para acesso ao cluster, 
 ### mas em ambientes on-premisse precisam de outras ferramentas para funcionar 
 ### como a MetalLB.
+#  ports:
+#    - port: 80
+#      targetPort: 8080 # porta do pod/deployment. Será feito um redirecionamento de portas.
+#  type: LoadBalancer
