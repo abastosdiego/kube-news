@@ -47,7 +47,7 @@ kind: Deployment
 metadata:
   name: web
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: web
@@ -81,13 +81,20 @@ spec:
   selector:
     app: web
   ports:
-    - port: 81
+    - port: 80
       targetPort: 8080 # porta do pod/deployment. Será feito um redirecionamento de portas.
-      nodePort: 30000
-  type: NodePort ### É possível expor o serviço para fora do cluster kubernets
+  type: LoadBalancer
 ---
 
-### k3d cluster create meucluster -p "81:30000@loadbalancer"
+### Para rodar local usando k3d, configure da seguinte forma:
+#ports:
+#  - port: 80
+#    targetPort: 8080
+#    nodePort: 30000
+#type: NodePort
+
+### E crie o cluster da seguinte forma:
+### k3d cluster create meucluster -p "80:30000@loadbalancer"
 
 ### kubectl port-forward deployment/web 8080:8080
 
