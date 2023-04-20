@@ -1,0 +1,98 @@
+#### Banco de dados postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgre
+spec:
+  selector:
+    matchLabels:
+      app: postgre
+  template:
+    metadata:
+      labels:
+        app: postgre
+    spec:
+      containers:
+        - name: postgre
+          image: postgres:15.0
+          ports:
+          - containerPort: 5432
+          env:
+          - name: POSTGRES_DB
+            value: "kubenews"
+          - name: POSTGRES_USER
+            value: "kubenews"
+          - name: POSTGRES_PASSWORD
+            value: "Pg#123"
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgre
+spec:
+  selector:
+    app: postgre
+  ports:
+    - port: 5432
+  type: ClusterIP ### O ClusterIP só serve para expor a comunicação entre pods
+
+---
+#### Aplicação Kubenews
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: abastosdiego/kube-news:v1
+          ports:
+          - containerPort: 8080
+          env:
+          - name: DB_DATABASE
+            value: "kubenews"
+          - name: DB_USERNAME
+            value: "kubenews"
+          - name: DB_PASSWORD
+            value: "Pg#123"
+          - name: DB_HOST
+            value: "postgre" # nome do service do postgres
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 81
+      targetPort: 8080 # porta do pod/deployment. Será feito um redirecionamento de portas.
+      nodePort: 30000
+  type: NodePort ### É possível expor o serviço para fora do cluster kubernets
+---
+
+### k3d cluster create meucluster -p "81:30000@loadbalancer"
+
+### kubectl port-forward deployment/web 8080:8080
+
+### kubectl port-forward service/postgre 5432:5432
+
+### Service do tipo LoadBalancer cria um ip público para acesso ao cluster, 
+### mas em ambientes on-premisse precisam de outras ferramentas para funcionar 
+### como a MetalLB.
